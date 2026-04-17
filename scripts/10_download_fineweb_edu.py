@@ -10,6 +10,7 @@ import argparse
 import os
 import sys
 
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from scripts._tokenize_common import tokenize_dataset_to_shards

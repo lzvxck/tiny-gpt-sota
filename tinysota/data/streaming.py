@@ -14,8 +14,9 @@ DATASET_CONFIGS = {
         "text_field": "text",
     },
     "python_edu": {
-        "path": "HuggingFaceTB/smollm-corpus",
-        "name": "python-edu",
+        # StackExchange contains code-heavy Q&A (Python, math, CS) — good code-adjacent pretraining
+        "path": "allenai/dolmino-mix-1124",
+        "name": "stackexchange",
         "split": "train",
         "text_field": "text",
     },
@@ -37,7 +38,7 @@ DATASET_CONFIGS = {
 def stream_dataset(name: str, max_docs: int | None = None) -> Iterator[str]:
     """Stream text documents from a named dataset config."""
     cfg = DATASET_CONFIGS[name]
-    kwargs = dict(split=cfg["split"], streaming=True, trust_remote_code=True)
+    kwargs = dict(split=cfg["split"], streaming=True)
     if cfg["name"] is not None:
         kwargs["name"] = cfg["name"]
     ds = load_dataset(cfg["path"], **kwargs)

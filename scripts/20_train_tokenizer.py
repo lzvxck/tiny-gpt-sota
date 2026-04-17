@@ -11,6 +11,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from tinysota.data.streaming import stream_dataset

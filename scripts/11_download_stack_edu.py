@@ -1,8 +1,9 @@
-"""Download and tokenize Python-Edu (The Stack edu-filtered subset)."""
+"""Download and tokenize StackExchange (code/math Q&A from dolmino-mix-1124)."""
 import argparse
 import os
 import sys
 
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from scripts._tokenize_common import tokenize_dataset_to_shards

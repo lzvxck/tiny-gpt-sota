@@ -10,8 +10,8 @@ dataset_weights:
   openwebmath: 0.10
   cosmopedia: 0.10
 
-# Budget — set from verify script measurement (26k tok/s, 2 days, 85% efficiency)
-total_tokens: 3_900_000_000
+# Budget — ~21h at 26k tok/s (fits in 1 day with buffer)
+total_tokens: 2_000_000_000
 
 # Batching
 # NOTE: small model doesn't mean small activations — MLP intermediates at seq=2048

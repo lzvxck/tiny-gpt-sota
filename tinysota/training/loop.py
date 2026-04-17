@@ -18,7 +18,7 @@ from tinysota.utils.config import TrainConfig, load_yaml
 from tinysota.data.shard_io import gather_shards, shard_loader
 from tinysota.training.schedule import cosine_with_warmup, linear_decay
 from tinysota.training.checkpoint import save_checkpoint, load_checkpoint, resume_path
-from tinysota.training.logging_utils import init_wandb, log, Throughput
+from tinysota.training.logging_utils import init_wandb, init_progress, stop_progress, log, Throughput
 from tinysota.training.muon import Muon, split_params_for_hybrid
 
 
@@ -102,6 +102,7 @@ def train(cfg: TrainConfig) -> None:
 
     # Logging
     init_wandb(cfg.wandb_project, cfg.wandb_run_name, vars(cfg))
+    init_progress(cfg.total_steps)
     throughput = Throughput(cfg.seq_len, cfg.micro_batch, cfg.grad_accum_steps)
     throughput.reset(start_step)
 
@@ -162,6 +163,7 @@ def train(cfg: TrainConfig) -> None:
             save_checkpoint(cfg.ckpt_dir, step, tokens_seen, model, optimizer, scheduler)
 
     save_checkpoint(cfg.ckpt_dir, step, tokens_seen, model, optimizer, scheduler)
+    stop_progress()
     print(f"Training complete. {tokens_seen/1e9:.2f}B tokens.")
 
 

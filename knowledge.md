@@ -289,7 +289,33 @@ A random model over 32,000 tokens has perplexity ≈ 32,000. A good pretrained m
 
 ---
 
-## 15. AdamW Optimizer
+## 15. Hybrid Optimizer — AdamW + Muon
+
+We use two optimizers simultaneously, each handling a different type of parameter:
+
+- **Muon** — all 2D linear weight matrices (Q/K/V/O projections, MLP gate/up/down). These are ~90% of parameters.
+- **AdamW** — embeddings, RMSNorm weights, and the tied lm_head. These are 1D or are special (embedding).
+
+**Why split?** Linear weight matrices have a natural matrix structure — they map between vector spaces. Muon exploits this by orthogonalizing the gradient before applying the update, which keeps the weight matrix well-conditioned and the update on the Stiefel manifold. AdamW treats parameters as flat vectors and doesn't know about matrix structure, so it's less efficient for these layers.
+
+**What Muon does**: at each step, it takes the raw gradient `G` (a matrix), runs 5 iterations of Newton-Schulz to compute the orthogonal factor of `G` (approximating the polar decomposition), then applies a Nesterov momentum update using the orthogonalized gradient. The result has unit spectral norm, so the effective learning rate is decoupled from gradient scale.
+
+**Newton-Schulz 5** is the cubic polynomial iteration:
+```
+X <- a*X + b*(X@X.T)@X + c*((X@X.T)@(X@X.T))@X
+```
+Initialized at `G / ||G||`, it converges to the orthogonal factor in ~5 steps using only BF16 matmuls.
+
+**LR difference**: Muon `lr=0.02` vs AdamW `lr=4e-4`. The 50× difference is because AdamW's per-parameter scaling means its "lr" controls a different quantity than Muon's, where the orthogonalization already normalizes the update magnitude.
+
+**Why we use it here**: Muon consistently reaches lower loss per token than AdamW on the linear layers in published comparisons (modded-nanogpt benchmarks). For a model trained on a tight 2-day budget, better loss-per-token directly means a better final model.
+
+**Learn more**:
+- [Modded NanoGPT (Keller Jordan, 2024)](https://github.com/KellerJordan/modded-nanogpt) — where Muon for LLM training was popularized
+- [Muon is SOAP which is Shampoo (Bernstein, 2024)](https://jeremybernste.in/writing/muon-is-soap) — theoretical connections
+- [Shampoo: Preconditioned Stochastic Tensor Optimization (Gupta et al., 2018)](https://arxiv.org/abs/1802.09568)
+
+## 15b. AdamW Optimizer
 
 An **optimizer** is the algorithm that updates model weights to reduce the loss. We use **AdamW**.
 
