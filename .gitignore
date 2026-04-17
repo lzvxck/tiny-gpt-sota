@@ -1,6 +1,7 @@
 data/raw/
 data/dedup/
 data/tokenized/
+data/tokenizer/tokenizer_train.txt
 checkpoints/
 *.bin
 *.pt
