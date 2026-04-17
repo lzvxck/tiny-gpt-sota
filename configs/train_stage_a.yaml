@@ -1,0 +1,54 @@
+model_config: configs/model_150m.yaml
+stage: a
+
+# Data
+data_dir: data/tokenized
+seq_len: 2048
+dataset_weights:
+  fineweb_edu: 0.60
+  python_edu: 0.20
+  openwebmath: 0.10
+  cosmopedia: 0.10
+
+# Budget — set from verify script measurement (26k tok/s, 2 days, 85% efficiency)
+total_tokens: 3_900_000_000
+
+# Batching
+# NOTE: small model doesn't mean small activations — MLP intermediates at seq=2048
+# consume ~240MB/layer × 16 layers = 3.8GB. micro_batch=8 uses ~6.5GB total (safe).
+micro_batch: 8
+grad_accum_steps: 16          # effective batch = 8 * 16 * 2048 = 262144 tokens (~256K)
+
+# Optimizer
+optimizer: hybrid
+lr: 4.0e-4           # AdamW lr (embeddings + norms)
+betas: [0.9, 0.95]
+weight_decay: 0.1
+eps: 1.0e-8
+muon_lr: 0.02        # Muon lr (all linear weight matrices)
+muon_momentum: 0.95
+
+# Schedule
+warmup_pct: 0.02
+decay: cosine
+min_lr_ratio: 0.1
+
+# Regularisation
+grad_clip: 1.0
+
+# Precision
+precision: bf16
+gradient_checkpointing: true   # required — without it activations alone fill 12 GB at batch=8
+compile: true
+compile_mode: default           # reduce-overhead uses CUDA graphs which break gradient checkpointing
+
+# Attention backend
+attn_impl: sdpa                # SDPA auto-routes to FA2 when available
+
+# Logging / checkpointing
+log_every: 10
+eval_every: 2000
+ckpt_every: 2000
+ckpt_dir: checkpoints/stage_a
+wandb_project: tiny-sota-llm
+wandb_run_name: stage_a_145m_9bt

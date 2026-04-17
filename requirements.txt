@@ -1,0 +1,59 @@
+# =============================================================================
+# STEP 1 — PyTorch with CUDA 12.8 (Blackwell sm_120, RTX 5070)
+# Run this FIRST, inside your .venv:
+#
+#   pip uninstall torch torchvision torchaudio -y
+#   pip install --pre torch torchvision torchaudio \
+#       --index-url https://download.pytorch.org/whl/nightly/cu128 \
+#       --no-cache-dir
+#
+# Verified working: torch 2.11.0+cu128, Python 3.12, Windows 10, RTX 5070
+# =============================================================================
+
+# =============================================================================
+# STEP 2 — FlashAttention-2 (Python 3.12, CUDA 12.8, torch 2.11, Windows)
+# Prebuilt wheel from mjun0812/flash-attention-prebuild-wheels:
+#
+#   pip install "https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.9.6/flash_attn-2.8.3%2Bcu128torch2.11-cp312-cp312-win_amd64.whl"
+#
+# NOTE: SDPA in PyTorch works WITHOUT this package (it uses a built-in FA2
+# kernel). This package gives a small extra speedup. Install if it works;
+# skip if it errors — training will still work.
+# =============================================================================
+
+# =============================================================================
+# STEP 3 — pip install -r requirements.txt (everything below)
+# =============================================================================
+
+# Triton for Windows (enables torch.compile on Windows)
+triton-windows>=3.2.0
+
+# HuggingFace stack
+transformers>=4.46
+tokenizers>=0.20
+datasets>=3.0
+accelerate>=1.0
+huggingface_hub>=0.24
+
+# Tokenizer training
+sentencepiece>=0.2.0
+
+# Data pipeline
+datasketch>=1.6
+pyarrow>=17.0
+zstandard>=0.23
+numpy>=1.26
+
+# Training utilities
+wandb>=0.18
+rich>=13.0
+tqdm>=4.66
+
+# Evaluation
+lm-eval>=0.4.3
+
+# Config / utils
+pyyaml>=6.0
+
+# Testing
+pytest>=8.0

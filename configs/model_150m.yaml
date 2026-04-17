@@ -1,0 +1,17 @@
+arch: llama-like
+vocab_size: 32000
+n_layers: 16
+d_model: 896
+n_heads: 7
+n_kv_heads: 1          # MQA — single KV head, aggressive but standard at this scale
+head_dim: 128          # d_model / n_heads = 896 / 7 = 128
+ffn_dim: 2432          # ~2.75 * d_model, rounded to multiple of 256
+norm: rmsnorm
+norm_eps: 1.0e-5
+mlp: swiglu
+pos_emb: rope
+rope_theta: 100000.0
+rope_scaling: null     # enabled during stage B
+tie_embeddings: true
+max_seq_len: 4096
+dropout: 0.0           # no dropout — standard for LLM pretraining

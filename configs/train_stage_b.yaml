@@ -1,0 +1,58 @@
+model_config: configs/model_150m.yaml
+stage: b
+
+# Data — annealing mix: up-weight quality sources
+data_dir: data/tokenized
+seq_len: 4096                  # doubled from Stage A
+dataset_weights:
+  fineweb_edu: 0.40
+  cosmopedia: 0.30             # boosted — synthetic textbooks help at annealing
+  openwebmath: 0.20            # boosted — math reasoning
+  python_edu: 0.10
+
+# Budget
+total_tokens: 2_000_000_000   # 2B tokens for Stage B
+
+# Batching — same effective batch, halved micro-batch to fit 4K ctx
+micro_batch: 4
+grad_accum_steps: 32          # 4 * 32 * 4096 = 524288 tokens/step
+
+# Optimizer (resume from stage A checkpoint)
+optimizer: hybrid
+lr: 4.0e-5
+betas: [0.9, 0.95]
+weight_decay: 0.1
+eps: 1.0e-8
+muon_lr: 2.0e-3      # 10x lower than stage A muon_lr
+muon_momentum: 0.95
+
+# Schedule
+warmup_pct: 0.0               # no warmup — we're annealing from a checkpoint
+decay: linear
+min_lr_ratio: 0.025           # decay to 1e-6 over 2B tokens
+
+# Regularisation
+grad_clip: 1.0
+
+# Precision
+precision: bf16
+gradient_checkpointing: true
+compile: true
+compile_mode: default
+
+# RoPE scaling for 4K context (NTK-aware)
+rope_scaling:
+  type: ntk
+  scale_factor: 2.0           # ctx doubled from 2K to 4K
+
+# Attention backend
+attn_impl: sdpa
+
+# Logging / checkpointing
+log_every: 10
+eval_every: 1000
+ckpt_every: 1000
+ckpt_dir: checkpoints/stage_b
+resume_from: checkpoints/stage_a/latest.txt
+wandb_project: tiny-sota-llm
+wandb_run_name: stage_b_145m_2bt_4k
